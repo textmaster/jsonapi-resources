@@ -218,18 +218,18 @@ class JoinTreeTest < ActiveSupport::TestCase
 
     if (Rails::VERSION::MAJOR == 6 && Rails::VERSION::MINOR >= 1) || Rails::VERSION::MAJOR > 6
       sql = 'SELECT "posts".* FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id" LEFT OUTER JOIN "people" author ON author."id" = "comments"."author_id" LEFT OUTER JOIN "comments_tags" ON "comments_tags"."comment_id" = "comments"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "comments_tags"."tag_id" LEFT OUTER JOIN "comments" "comments_people" ON "comments_people"."author_id" = "people"."id" WHERE "comments"."approved" = ' + db_true + ' AND "author"."special" = ' + db_true
-      assert_hash_equals({alias: 'author', join_type: :left}, join_manager.join_details_by_relationship(Api::V10::CommentResource._relationship(:author)))
+      assert_hash_equals({alias: 'author', join_type: :left}, join_manager.join_details_by_relationship(Api::V10::CommentResource._relationship(:author)).except!(:join_options))
     else
       sql = 'SELECT "posts".* FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id" LEFT OUTER JOIN "people" ON "people"."id" = "comments"."author_id" LEFT OUTER JOIN "comments_tags" ON "comments_tags"."comment_id" = "comments"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "comments_tags"."tag_id" LEFT OUTER JOIN "comments" "comments_people" ON "comments_people"."author_id" = "people"."id" WHERE "comments"."approved" = ' + db_true + ' AND "author"."special" = ' + db_true
-      assert_hash_equals({alias: 'people', join_type: :left}, join_manager.join_details_by_relationship(Api::V10::CommentResource._relationship(:author)))
+      assert_hash_equals({alias: 'people', join_type: :left}, join_manager.join_details_by_relationship(Api::V10::CommentResource._relationship(:author)).except!(:join_options))
     end
 
     assert_equal sql, records.to_sql
 
-    assert_hash_equals({alias: 'comments', join_type: :inner}, join_manager.source_join_details)
-    assert_hash_equals({alias: 'comments', join_type: :inner}, join_manager.join_details_by_relationship(Api::V10::PostResource._relationship(:comments)))
-    assert_hash_equals({alias: 'tags', join_type: :left}, join_manager.join_details_by_relationship(Api::V10::CommentResource._relationship(:tags)))
-    assert_hash_equals({alias: 'comments_people', join_type: :left}, join_manager.join_details_by_relationship(Api::V10::PersonResource._relationship(:comments)))
+    assert_hash_equals({alias: 'comments', join_type: :inner}, join_manager.source_join_details.except!(:join_options))
+    assert_hash_equals({alias: 'comments', join_type: :inner}, join_manager.join_details_by_relationship(Api::V10::PostResource._relationship(:comments)).except!(:join_options))
+    assert_hash_equals({alias: 'tags', join_type: :left}, join_manager.join_details_by_relationship(Api::V10::CommentResource._relationship(:tags)).except!(:join_options))
+    assert_hash_equals({alias: 'comments_people', join_type: :left}, join_manager.join_details_by_relationship(Api::V10::PersonResource._relationship(:comments)).except!(:join_options))
   end
 
   def test_add_joins_with_sub_relationship_and_filters
